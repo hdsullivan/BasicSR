@@ -14,8 +14,6 @@ THRES_MEAN = 0.00001
 def main():
     """A multi-thread tool to crop large images to sub-images for faster IO.
 
-    It is used for DIV2K dataset.
-
     Args:
         opt (dict): Configuration dict. It contains:
         n_thread (int): Thread number.
@@ -36,7 +34,7 @@ def main():
     """
 
     opt = {}
-    opt['n_thread'] = 20
+    opt['n_thread'] = 8
     opt['compression_level'] = 3
 
     # HR training images
