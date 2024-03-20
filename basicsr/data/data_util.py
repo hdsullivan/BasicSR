@@ -4,8 +4,11 @@ import torch
 from os import path as osp
 from torch.nn import functional as F
 
-from basicsr.data.transforms import mod_crop
-from basicsr.utils import img2tensor, scandir
+# from basicsr.data.transforms import mod_crop
+# from basicsr.utils import img2tensor, scandir
+
+from data.transforms import mod_crop
+from utils import img2tensor, scandir
 
 
 def read_img_seq(path, require_mod_crop=False, scale=1, return_imgname=False):
@@ -197,6 +200,18 @@ def paired_paths_from_meta_info_file(folders, keys, meta_info_file, filename_tmp
     return paths
 
 
+import os
+
+def remove_thumbs_db(folder):
+    """Remove thumbs.db file from the folder if it exists.
+
+    Args:
+        folder (str): Folder path.
+    """
+    thumbs_db_path = os.path.join(folder, 'thumbs.db')
+    if os.path.exists(thumbs_db_path):
+        os.remove(thumbs_db_path)
+
 def paired_paths_from_folder(folders, keys, filename_tmpl):
     """Generate paired paths from folders.
 
@@ -217,6 +232,9 @@ def paired_paths_from_folder(folders, keys, filename_tmpl):
     assert len(keys) == 2, f'The len of keys should be 2 with [input_key, gt_key]. But got {len(keys)}'
     input_folder, gt_folder = folders
     input_key, gt_key = keys
+
+    remove_thumbs_db(input_folder)
+    remove_thumbs_db(gt_folder)
 
     input_paths = list(scandir(input_folder))
     gt_paths = list(scandir(gt_folder))

@@ -1,7 +1,8 @@
 import torch
 from torch import nn as nn
 
-from basicsr.utils.registry import ARCH_REGISTRY
+# from basicsr.utils.registry import ARCH_REGISTRY
+from utils.registry import ARCH_REGISTRY
 from .arch_util import Upsample, make_layer
 
 

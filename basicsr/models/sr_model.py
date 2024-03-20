@@ -2,12 +2,20 @@ import torch
 from collections import OrderedDict
 from os import path as osp
 from tqdm import tqdm
+import cv2
 
-from basicsr.archs import build_network
-from basicsr.losses import build_loss
-from basicsr.metrics import calculate_metric
-from basicsr.utils import get_root_logger, imwrite, tensor2img
-from basicsr.utils.registry import MODEL_REGISTRY
+# from basicsr.archs import build_network
+# from basicsr.losses import build_loss
+# from basicsr.metrics import calculate_metric
+# from basicsr.utils import get_root_logger, imwrite, tensor2img
+# from basicsr.utils.registry import MODEL_REGISTRY
+
+from archs import build_network
+from losses import build_loss
+from metrics import calculate_metric
+from utils import get_root_logger, imwrite, tensor2img
+from utils.registry import MODEL_REGISTRY
+
 from .base_model import BaseModel
 
 
@@ -201,39 +209,67 @@ class SRModel(BaseModel):
 
         for idx, val_data in enumerate(dataloader):
             img_name = osp.splitext(osp.basename(val_data['lq_path'][0]))[0]
+            print("Testing on " + img_name + "...")
             self.feed_data(val_data)
             self.test()
 
             visuals = self.get_current_visuals()
             sr_img = tensor2img([visuals['result']])
+            lr_img = tensor2img([visuals['lq']])
+
             metric_data['img'] = sr_img
             if 'gt' in visuals:
                 gt_img = tensor2img([visuals['gt']])
                 metric_data['img2'] = gt_img
                 del self.gt
 
+            if save_img:
+                if self.opt['is_train']:
+                    save_img_path = osp.join(self.opt['path']['visualization'], img_name,
+                                             f'{img_name}_{current_iter}.png')
+                    imwrite(sr_img, save_img_path)
+                else:
+                    if self.opt['val']['suffix']:
+                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
+                        save_lr_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["val"]["suffix"]}_lr_crop.png')
+                        save_img_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["val"]["suffix"]}_sr_crop.png')
+                        save_gt_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["val"]["suffix"]}_gt_crop.png')
+                    else:
+                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["name"]}.png')
+                        save_lr_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["name"]}_lr_crop.png')
+                        save_img_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["name"]}_sr_crop.png')
+                        save_gt_path_cropped = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                 f'{img_name}_{self.opt["name"]}_gt_crop.png')
+
+                    width_center_hr = sr_img.shape[0] // 2
+                    height_center_hr = sr_img.shape[1] // 2
+                    L = sr_img.shape[0] // lr_img.shape[0]
+                    width_center_lr = lr_img.shape[0] // 2
+                    height_center_lr = lr_img.shape[1] // 2
+
+                    imwrite(sr_img, save_img_path)
+                    imwrite(lr_img[width_center_lr-(100 // L):width_center_lr+(100 // L),height_center_lr-(100 // L):height_center_lr+(100 // L), :], save_lr_path_cropped)
+                    imwrite(sr_img[width_center_hr-100:width_center_hr+100, height_center_hr-100:height_center_hr+100, :], save_img_path_cropped)
+                    imwrite(gt_img[width_center_hr-100:width_center_hr+100, height_center_hr-100:height_center_hr+100, :], save_gt_path_cropped)
+
             # tentative for out of GPU memory
             del self.lq
             del self.output
             torch.cuda.empty_cache()
 
-            if save_img:
-                if self.opt['is_train']:
-                    save_img_path = osp.join(self.opt['path']['visualization'], img_name,
-                                             f'{img_name}_{current_iter}.png')
-                else:
-                    if self.opt['val']['suffix']:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
-                    else:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["name"]}.png')
-                imwrite(sr_img, save_img_path)
-
             if with_metrics:
                 # calculate metrics
                 for name, opt_ in self.opt['val']['metrics'].items():
-                    self.metric_results[name] += calculate_metric(metric_data, opt_)
+                    metrics = calculate_metric(metric_data, opt_)
+                    print("     " + name + ": " + str(round(metrics,3)))
+                    self.metric_results[name] += metrics
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')

@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from basicsr.utils.registry import ARCH_REGISTRY
+# from basicsr.utils.registry import ARCH_REGISTRY
+from utils.registry import ARCH_REGISTRY
 from .hifacegan_util import BaseNetwork, LIPEncoder, SPADEResnetBlock, get_nonspade_norm_layer
 
 

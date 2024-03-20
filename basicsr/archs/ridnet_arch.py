@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 
-from basicsr.utils.registry import ARCH_REGISTRY
+# from basicsr.utils.registry import ARCH_REGISTRY
+from utils.registry import ARCH_REGISTRY
 from .arch_util import ResidualBlockNoBN, make_layer
 
 
