@@ -3,15 +3,24 @@ import logging
 import math
 import time
 import torch
+import numpy as np
 from os import path as osp
 
-from basicsr.data import build_dataloader, build_dataset
-from basicsr.data.data_sampler import EnlargedSampler
-from basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
-from basicsr.models import build_model
-from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
+# from basicsr.data import build_dataloader, build_dataset
+# from basicsr.data.data_sampler import EnlargedSampler
+# from basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
+# from basicsr.models import build_model
+# from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
+#                            init_tb_logger, init_wandb_logger, make_exp_dirs, mkdir_and_rename, scandir)
+# from basicsr.utils.options import copy_opt_file, dict2str, parse_options
+
+from data import build_dataloader, build_dataset
+from data.data_sampler import EnlargedSampler
+from data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
+from models import build_model
+from utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
                            init_tb_logger, init_wandb_logger, make_exp_dirs, mkdir_and_rename, scandir)
-from basicsr.utils.options import copy_opt_file, dict2str, parse_options
+from utils.options import copy_opt_file, dict2str, parse_options
 
 
 def init_tb_loggers(opt):
@@ -150,7 +159,7 @@ def train_pipeline(root_path):
     logger.info(f'Start training from epoch: {start_epoch}, iter: {current_iter}')
     data_timer, iter_timer = AvgTimer(), AvgTimer()
     start_time = time.time()
-
+    loss = []
     for epoch in range(start_epoch, total_epochs + 1):
         train_sampler.set_epoch(epoch)
         prefetcher.reset()
@@ -178,6 +187,7 @@ def train_pipeline(root_path):
                 log_vars.update({'lrs': model.get_current_learning_rate()})
                 log_vars.update({'time': iter_timer.get_avg_time(), 'data_time': data_timer.get_avg_time()})
                 log_vars.update(model.get_current_log())
+                loss.append(log_vars['l_pix'])
                 msg_logger(log_vars)
 
             # save models and training states
@@ -198,6 +208,9 @@ def train_pipeline(root_path):
         # end of iter
 
     # end of epoch
+
+    loss_array = np.array(loss)
+    np.save(osp.join('experiments', opt['name'], "loss.npy"), loss_array)
 
     consumed_time = str(datetime.timedelta(seconds=int(time.time() - start_time)))
     logger.info(f'End of training. Time consumed: {consumed_time}')
