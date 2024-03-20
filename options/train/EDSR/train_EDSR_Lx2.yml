@@ -1,17 +1,17 @@
 # general settings
-name: 204_EDSR_Lx2_f256b32_DIV2K_300k_B16G1_wandb
+name: EDSR_CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_Lx2_NOnoise_NOblur
 model_type: SRModel
 scale: 2
-num_gpu: 1  # set num_gpu: 0 for cpu mode
+num_gpu: 2  # set num_gpu: 0 for cpu mode
 manual_seed: 10
 
 # dataset and data loader settings
 datasets:
   train:
-    name: DIV2K
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_X2
     type: PairedImageDataset
-    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
-    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X2_sub
+    dataroot_gt: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\GT_sub_120\train
+    dataroot_lq: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\LR_NOnoise_NOblur_sub_60\train
     # (for lmdb)
     # dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub.lmdb
     # dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic_X2_sub.lmdb
@@ -21,21 +21,21 @@ datasets:
       # (for lmdb)
       # type: lmdb
 
-    gt_size: 96
+    gt_size: 120
     use_hflip: true
     use_rot: true
 
     # data loader
-    num_worker_per_gpu: 6
+    num_worker_per_gpu: 8
     batch_size_per_gpu: 16
-    dataset_enlarge_ratio: 100
+    dataset_enlarge_ratio: 1
     prefetch_mode: ~
 
   val:
-    name: Set5
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse
     type: PairedImageDataset
-    dataroot_gt: datasets/Set5/GTmod12
-    dataroot_lq: datasets/Set5/LRbicx2
+    dataroot_gt: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\GT_sub_120\val
+    dataroot_lq: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\LR_NOnoise_NOblur_sub_60\val
     io_backend:
       type: disk
 
@@ -49,13 +49,13 @@ network_g:
   upscale: 2
   res_scale: 0.1
   img_range: 255.
-  rgb_mean: [0.4488, 0.4371, 0.4040]
+  rgb_mean: [0.0, 0.0, 0.0]
 
 # path
 path:
   pretrain_network_g: ~
   strict_load_g: true
-  resume_state: ~
+  resume_state: experiments\EDSR_CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_Lx2_NOnoise_NOblur\training_states\15000.state
 
 # training settings
 train:
@@ -82,8 +82,8 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 5e3
-  save_img: false
+  val_freq: !!float 5e2
+  save_img: true
 
   metrics:
     psnr: # metric name, can be arbitrary

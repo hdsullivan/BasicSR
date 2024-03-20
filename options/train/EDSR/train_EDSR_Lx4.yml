@@ -1,17 +1,17 @@
 # general settings
-name: 206_EDSR_Lx4_f256b32_DIV2K_300k_B16G1_204pretrain_wandb
+name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_x4
 model_type: SRModel
 scale: 4
-num_gpu: 1  # set num_gpu: 0 for cpu mode
+num_gpu: 2  # set num_gpu: 0 for cpu mode
 manual_seed: 10
 
 # dataset and data loader settings
 datasets:
   train:
-    name: DIV2K
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_X4_train
     type: PairedImageDataset
-    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
-    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub
+    dataroot_gt: S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X4/GT_sub_120/train
+    dataroot_lq: S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/x4/LR_NOnoise_NOblur_sub_30/train
     # (for lmdb)
     # dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub.lmdb
     # dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
@@ -21,7 +21,7 @@ datasets:
       # (for lmdb)
       # type: lmdb
 
-    gt_size: 192
+    gt_size: 96
     use_hflip: true
     use_rot: true
 
@@ -32,10 +32,10 @@ datasets:
     prefetch_mode: ~
 
   val:
-    name: Set5
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_X4_val
     type: PairedImageDataset
-    dataroot_gt: datasets/Set5/GTmod12
-    dataroot_lq: datasets/Set5/LRbicx4
+    dataroot_gt: S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X4/GT_sub_120/val
+    dataroot_lq: S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/x4/LR_NOnoise_NOblur_sub_30/val
     io_backend:
       type: disk
 
@@ -48,12 +48,13 @@ network_g:
   num_block: 32
   upscale: 4
   res_scale: 0.1
-  img_range: 255.
-  rgb_mean: [0.4488, 0.4371, 0.4040]
+  img_range: 255
+  # rgb_mean: [0.4488, 0.4371, 0.4040]
+  rgb_mean: [0.0, 0.0, 0.0]
 
 # path
 path:
-  pretrain_network_g: experiments/204_EDSR_Lx2_f256b32_DIV2K_300k_B16G1_wandb/models/net_g_300000.pth
+  pretrain_network_g: ~
   strict_load_g: false
   resume_state: ~
 

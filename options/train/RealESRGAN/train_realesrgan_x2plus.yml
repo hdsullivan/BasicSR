@@ -36,10 +36,20 @@ queue_size: 180
 # dataset and data loader settings
 datasets:
   train:
-    name: DF2K+OST
-    type: RealESRGANDataset
-    dataroot_gt: datasets/DF2K
-    meta_info: datasets/DF2K/meta_info/meta_info_DF2Kmultiscale+OST_sub.txt
+    # name: DF2K+OST
+    # type: RealESRGANDataset
+    # dataroot_gt: datasets/DF2K
+    # meta_info: datasets/DF2K/meta_info/meta_info_DF2Kmultiscale+OST_sub.txt
+    # io_backend:
+    #   type: disk
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_X2
+    type: PairedImageDataset
+    dataroot_gt: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\GT_sub_90
+    dataroot_lq: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\LR_NOnoise_NOblur_sub_45
+    # (for lmdb)
+    # dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub.lmdb
+    # dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic_X2_sub.lmdb
+    filename_tmpl: '{}'
     io_backend:
       type: disk
 
@@ -72,13 +82,13 @@ datasets:
     prefetch_mode: ~
 
   # Uncomment these for validation
-  # val:
-  #   name: validation
-  #   type: PairedImageDataset
-  #   dataroot_gt: path_to_gt
-  #   dataroot_lq: path_to_lq
-  #   io_backend:
-  #     type: disk
+  val:
+    name: CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse_X2
+    type: PairedImageDataset
+    dataroot_gt: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\GT
+    dataroot_lq: S:\NAOA\Projects\AM-SuperResolution\datasets\noBH\Al\CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse\X2\LR_NOnoise_NOblur
+    io_backend:
+      type: disk
 
 # network structures
 network_g:
@@ -99,7 +109,8 @@ network_d:
 # path
 path:
   # use the pre-trained Real-ESRNet model
-  pretrain_network_g: experiments/pretrained_models/RealESRNet_x2plus.pth
+  # pretrain_network_g: experiments/pretrained_models/RealESRNet_x2plus.pth
+  pretrain_network_g: ~
   param_key_g: params_ema
   strict_load_g: true
   resume_state: ~
@@ -123,7 +134,7 @@ train:
     milestones: [400000]
     gamma: 0.5
 
-  total_iter: 400000
+  total_iter: 1000
   warmup_iter: -1  # no warm up
 
   # losses
@@ -160,20 +171,20 @@ train:
 
 # Uncomment these for validation
 # validation settings
-# val:
-#   val_freq: !!float 5e3
-#   save_img: True
+val:
+  val_freq: !!float 5e2
+  save_img: True
 
-#   metrics:
-#     psnr: # metric name
-#       type: calculate_psnr
-#       crop_border: 4
-#       test_y_channel: false
+  metrics:
+    psnr: # metric name
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
 
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 5e3
+  save_checkpoint_freq: !!float 5e2
   use_tb_logger: true
   wandb:
     project: ~
