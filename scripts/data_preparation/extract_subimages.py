@@ -5,9 +5,11 @@ import sys
 from multiprocessing import Pool
 from os import path as osp
 from tqdm import tqdm
+import shutil
 
 from basicsr.utils import scandir
 
+THRES_MEAN = 0.00001
 
 def main():
     """A multi-thread tool to crop large images to sub-images for faster IO.
@@ -27,12 +29,6 @@ def main():
 
     Usage:
         For each folder, run this script.
-        Typically, there are four folders to be processed for DIV2K dataset.
-
-            * DIV2K_train_HR
-            * DIV2K_train_LR_bicubic/X2
-            * DIV2K_train_LR_bicubic/X3
-            * DIV2K_train_LR_bicubic/X4
 
         After process, each sub_folder should have the same number of subimages.
 
@@ -43,36 +39,36 @@ def main():
     opt['n_thread'] = 20
     opt['compression_level'] = 3
 
-    # HR images
-    opt['input_folder'] = 'datasets/DIV2K/DIV2K_train_HR'
-    opt['save_folder'] = 'datasets/DIV2K/DIV2K_train_HR_sub'
-    opt['crop_size'] = 480
-    opt['step'] = 240
-    opt['thresh_size'] = 0
-    extract_subimages(opt)
-
-    # LRx2 images
-    opt['input_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X2'
-    opt['save_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X2_sub'
-    opt['crop_size'] = 240
-    opt['step'] = 120
-    opt['thresh_size'] = 0
-    extract_subimages(opt)
-
-    # LRx3 images
-    opt['input_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X3'
-    opt['save_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X3_sub'
-    opt['crop_size'] = 160
-    opt['step'] = 80
-    opt['thresh_size'] = 0
-    extract_subimages(opt)
-
-    # LRx4 images
-    opt['input_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4'
-    opt['save_folder'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub'
+    # HR training images
+    opt['input_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/GT/train'
+    opt['save_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/GT_sub_120/train'
     opt['crop_size'] = 120
     opt['step'] = 60
-    opt['thresh_size'] = 0
+    opt['thresh_size'] = 120
+    extract_subimages(opt)
+
+    # HR validation images
+    opt['input_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/GT/val'
+    opt['save_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/GT_sub_120/val'
+    opt['crop_size'] = 120
+    opt['step'] = 60
+    opt['thresh_size'] = 120
+    extract_subimages(opt)
+
+    # LR training images
+    opt['input_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/LR_NOnoise_NOblur/train'
+    opt['save_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/LR_NOnoise_NOblur_sub_60/train'
+    opt['crop_size'] = 60
+    opt['step'] = 30
+    opt['thresh_size'] = 60
+    extract_subimages(opt)
+
+    # LR validation images
+    opt['input_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/LR_NOnoise_NOblur/val'
+    opt['save_folder'] = 'S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/X2/LR_NOnoise_NOblur_sub_60/val'
+    opt['crop_size'] = 60
+    opt['step'] = 30
+    opt['thresh_size'] = 60
     extract_subimages(opt)
 
 
@@ -89,10 +85,19 @@ def extract_subimages(opt):
     save_folder = opt['save_folder']
     if not osp.exists(save_folder):
         os.makedirs(save_folder)
-        print(f'mkdir {save_folder} ...')
+        print(f'\n mkdir {save_folder} ...')
     else:
-        print(f'Folder {save_folder} already exists. Exit.')
-        sys.exit(1)
+        print(f'\n Folder {save_folder} already exists. ')
+        user_response = input('Do you want to overwrite it? Y/N\n')
+        if user_response.lower() == 'y':
+            print(f'Overwriting...')
+            shutil.rmtree(save_folder)
+            os.makedirs(save_folder, exist_ok=True)
+        elif user_response.lower() == 'n':
+            print(f'Skipping...')
+        else:
+            raise ValueError('Wrong input. Only accepts Y/N.')
+
 
     img_list = list(scandir(input_folder, full_path=True))
 
@@ -135,6 +140,8 @@ def worker(path, opt):
     h_space = np.arange(0, h - crop_size + 1, step)
     if h - (h_space[-1] + crop_size) > thresh_size:
         h_space = np.append(h_space, h - crop_size)
+    # h_space = [0]
+
     w_space = np.arange(0, w - crop_size + 1, step)
     if w - (w_space[-1] + crop_size) > thresh_size:
         w_space = np.append(w_space, w - crop_size)
@@ -145,9 +152,10 @@ def worker(path, opt):
             index += 1
             cropped_img = img[x:x + crop_size, y:y + crop_size, ...]
             cropped_img = np.ascontiguousarray(cropped_img)
-            cv2.imwrite(
-                osp.join(opt['save_folder'], f'{img_name}_s{index:03d}{extension}'), cropped_img,
-                [cv2.IMWRITE_PNG_COMPRESSION, opt['compression_level']])
+            if np.mean(cropped_img) > THRES_MEAN:
+                cv2.imwrite(
+                    osp.join(opt['save_folder'], f'{img_name}_s{index:03d}{extension}'), cropped_img,
+                    [cv2.IMWRITE_PNG_COMPRESSION, opt['compression_level']])
     process_info = f'Processing {img_name} ...'
     return process_info
 
