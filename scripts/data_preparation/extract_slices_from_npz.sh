@@ -8,9 +8,6 @@
 
 conda activate basic_sr
 
-import argparse
-import numpy as np
-
 # python extract_slices_from_npz.py --gt_npz $GT_PATH --lr_npz $LR_PATH --save_dir_gt $SAVE_DIR_GT --save_dir_lr $SAVE_DIR_LR --scale $SCALE
 
 python scripts/data_preparation/extract_slices_from_npz.py --gt_npz S:/NAOA/Projects/AM-SuperResolution/datasets/main_data/GT/noBH/Al/CADRotated_wFlaws_REC_FDK_Al_CleanGT_noBH_2132_Views_fullscan.npz --lr_npz S:/NAOA/Projects/AM-SuperResolution/datasets/main_data/down_sampled/noBH/2X/Al/145view_Shortscan/NoNoise_NoBlur/CADRotated_wFlaws_REC_FDK_Al_noBH_2Xbinning_NOnoise_NOblur_145_Views_shortANDsparse.npz --save_dir_gt S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/X2/GT --save_dir_lr S:/NAOA/Projects/AM-SuperResolution/datasets/noBH/Al/X2/CADRotated_wFlaws_REC_FDK_145_Views_shortANDsparse/LR_NOnoise_NOblur --scale 2
