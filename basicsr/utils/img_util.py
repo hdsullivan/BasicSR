@@ -111,7 +111,7 @@ def tensor2img_fast(tensor, rgb2bgr=True, min_max=(0, 1)):
     return output
 
 
-def imfrombytes(content, flag='color', float32=False):
+def imfrombytes(content, flag='unchanged', float32=False):
     """Read an image from bytes.
 
     Args:
@@ -128,7 +128,8 @@ def imfrombytes(content, flag='color', float32=False):
     imread_flags = {'color': cv2.IMREAD_COLOR, 'grayscale': cv2.IMREAD_GRAYSCALE, 'unchanged': cv2.IMREAD_UNCHANGED}
     img = cv2.imdecode(img_np, imread_flags[flag])
     if float32:
-        img = img.astype(np.float32) / 255.
+        # img = img.astype(np.float32) / 255.
+        img = img.astype(np.float32)
     return img
 
 

@@ -5,7 +5,7 @@ import scipy
 from os import path as osp
 import shutil
 
-def hist_cluster_fixed(recon, peaks=[5000, 6000], type='float32', ret_th=0.00001, sub_sampling_factor=10):
+def hist_cluster_fixed(recon, peaks=[5000, 6000], type='float16', ret_th=0.00001, sub_sampling_factor=10):
     """
     Perform histogram clustering on the input reconstruction image.
 
@@ -33,10 +33,12 @@ def hist_cluster_fixed(recon, peaks=[5000, 6000], type='float32', ret_th=0.00001
 
     output = calc_output(recon, peak_1, peak_2, mp1, mp2)
     if type == 'uint16':
-        output = np.clip(output, 0, 65535)
-    elif type == 'float32':
+        output = np.clip(output, 0, 65535).astype(type)
+    elif type == 'float32' or type == 'float16':
         output = output / 65535.0
         output = np.clip(output, 0.0, 1.0)
+        # if type == 'float16':
+        #     output = np.float16(output)
 
     return output, mp1, mp2
 

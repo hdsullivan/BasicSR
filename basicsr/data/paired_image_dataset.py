@@ -10,6 +10,7 @@ from data.data_util import paired_paths_from_folder, paired_paths_from_lmdb, pai
 from data.transforms import augment, paired_random_crop
 from utils import FileClient, bgr2ycbcr, imfrombytes, img2tensor
 from utils.registry import DATASET_REGISTRY
+import cv2
 
 
 
@@ -74,12 +75,18 @@ class PairedImageDataset(data.Dataset):
 
         # Load gt and lq images. Dimension order: HWC; channel order: BGR;
         # image range: [0, 1], float32.
+        # gt_path = self.paths[index]['gt_path']
+        # img_bytes = self.file_client.get(gt_path, 'gt')
+        # img_gt = imfrombytes(img_bytes, float32=True)
+        # lq_path = self.paths[index]['lq_path']
+        # img_bytes = self.file_client.get(lq_path, 'lq')
+        # img_lq = imfrombytes(img_bytes, float32=True)
+
         gt_path = self.paths[index]['gt_path']
-        img_bytes = self.file_client.get(gt_path, 'gt')
-        img_gt = imfrombytes(img_bytes, float32=True)
+        img_gt = cv2.imread(gt_path, cv2.IMREAD_UNCHANGED)
+
         lq_path = self.paths[index]['lq_path']
-        img_bytes = self.file_client.get(lq_path, 'lq')
-        img_lq = imfrombytes(img_bytes, float32=True)
+        img_lq = cv2.imread(lq_path, cv2.IMREAD_UNCHANGED)
 
         # augmentation for training
         if self.opt['phase'] == 'train':
