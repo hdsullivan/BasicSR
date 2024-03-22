@@ -209,7 +209,7 @@ class SRModel(BaseModel):
 
         for idx, val_data in enumerate(dataloader):
             img_name = osp.splitext(osp.basename(val_data['lq_path'][0]))[0]
-            print("Testing on " + img_name + "...")
+            # print("Testing on " + img_name + "...")
             self.feed_data(val_data)
             self.test()
 
@@ -268,7 +268,7 @@ class SRModel(BaseModel):
                 # calculate metrics
                 for name, opt_ in self.opt['val']['metrics'].items():
                     metrics = calculate_metric(metric_data, opt_)
-                    print("     " + name + ": " + str(round(metrics,3)))
+                    # print("     " + name + ": " + str(round(metrics,3)))
                     self.metric_results[name] += metrics
             if use_pbar:
                 pbar.update(1)
@@ -287,7 +287,7 @@ class SRModel(BaseModel):
     def _log_validation_metric_values(self, current_iter, dataset_name, tb_logger):
         log_str = f'Validation {dataset_name}\n'
         for metric, value in self.metric_results.items():
-            log_str += f'\t # {metric}: {value:.4f}'
+            log_str += f'\t # {metric} -- Mean: {value:.4f}'
             if hasattr(self, 'best_metric_results'):
                 log_str += (f'\tBest: {self.best_metric_results[dataset_name][metric]["val"]:.4f} @ '
                             f'{self.best_metric_results[dataset_name][metric]["iter"]} iter')
