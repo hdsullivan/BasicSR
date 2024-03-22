@@ -4,8 +4,9 @@ import cv2
 import scipy
 from os import path as osp
 import shutil
+from skimage.filters import threshold_otsu
 
-def hist_cluster_fixed(recon, peaks=[5000, 6000], type='float16', ret_th=0.00001, sub_sampling_factor=10):
+def hist_cluster_fixed(recon, peaks=[16000, 32000], known_th = False, type='float16', ret_th=0.0, sub_sampling_factor=10):
     """
     Perform histogram clustering on the input reconstruction image.
 
@@ -25,8 +26,13 @@ def hist_cluster_fixed(recon, peaks=[5000, 6000], type='float16', ret_th=0.00001
 
     output = scipy.ndimage.zoom(recon, 1 / sub_sampling_factor, order=0)
 
-    lt_indices = np.where(output < ret_th)
-    ge_indices = np.where(output >= ret_th)
+    if known_th:
+        th = ret_th
+    else:
+        th = threshold_otsu(output)
+
+    lt_indices = np.where(output < th)
+    ge_indices = np.where(output >= th)
 
     mp1 = np.median(output[lt_indices])
     mp2 = np.median(output[ge_indices])
@@ -156,7 +162,7 @@ def process_img(img, img_name, crop_size, step, save_folder, compression_level):
                 [cv2.IMWRITE_PNG_COMPRESSION, compression_level])
 
 
-def extract_paired_slices(gt, lr, scale, cropped_to_object, thresh_range=0.8, patch_thresh=120):
+def extract_paired_slices(gt, lr, scale, cropped_to_object, thresh_range=0.1, patch_thresh=120):
     """
     Extract slices from npz files.
 
@@ -208,22 +214,34 @@ def crop_to_object(img_gt, img_lr, scale, slice, thresh_range, patch_thresh):
         numpy.ndarray: The cropped ground truth image.
         numpy.ndarray: The cropped low-resolution image.
     """
+
     if np.max(img_gt) - np.min(img_gt) > thresh_range:
-        img_gt_uint = (255.0 * img_gt).astype(np.uint8)
-        med_val = np.median(img_gt_uint)
-        lower = int(max(0 ,0.7*med_val))
-        upper = int(min(255,1.3*med_val))
-        edged = cv2.Canny(img_gt_uint, lower, upper)
-        contours,_ = cv2.findContours(edged, 1, 1)
+        thresh = threshold_otsu(img_gt)
+        binary = np.zeros_like(img_gt)
 
-        if len(contours) > 0:
-            c = max(contours, key = cv2.contourArea)
-            x,y,w,h = cv2.boundingRect(c)
+        binary[img_gt > thresh] = 1
 
-            if w > patch_thresh and h > patch_thresh:
-                print(f'Found Object in slice {scale * slice} with bbox of size = {w}x{h} pixels.')
-                img_gt = img_gt[y:y+h, x:x+w]
-                img_lr = img_lr[y // scale:y // scale + h // scale, x // scale:x // scale + w // scale]
+        contours = cv2.findContours(binary.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        c = max(contours[0], key=cv2.contourArea)
+        x, y, width, height = cv2.boundingRect(c)
 
-                return img_gt, img_lr
+        # left = np.min(np.where(binary[0, :] > 0))
+        # right = np.max(np.where(binary[0, :]  > 0))
+        # top = np.min(np.where(binary[1, :] > 0))
+        # bottom = np.max(np.where(binary[1, :]  > 0))
+
+        # width = right - left
+        # height = bottom - top
+
+        if width > patch_thresh and height > patch_thresh:
+            print(f'Found Object in slice {scale * slice} with bbox of size = {width}x{height} pixels.')
+
+            width = width + (width % patch_thresh)
+            height = height + (height % patch_thresh)
+
+            img_gt = img_gt[y:y+height, x:x+width]
+            img_lr = img_lr[x // scale:(x+width) // scale, y // scale:(y + height) // scale]
+
+            return img_gt, img_lr
+
     return None, None

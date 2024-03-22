@@ -78,7 +78,7 @@ gt, mp1_gt, mp2_gt = preprocess_utils.hist_cluster_fixed(gt)
 lr, mp1_lr, mp2_lr = preprocess_utils.hist_cluster_fixed(lr)
 
 print("\nExtracting paired slices...")
-gt_list, lr_list = preprocess_utils.extract_paired_slices(gt, lr, SCALE, TRAINING_DATA, patch_thresh=GT_PATCH_SIZE, thresh_range=0.8)
+gt_list, lr_list = preprocess_utils.extract_paired_slices(gt, lr, SCALE, TRAINING_DATA, patch_thresh=GT_PATCH_SIZE, thresh_range=0.01)
 
 preprocess_utils.make_dir(SAVE_DIR_GT)
 preprocess_utils.make_dir(SAVE_DIR_LR)
@@ -108,7 +108,7 @@ if TRAINING_DATA:
 else:
     print("\nSaving testing patches...")
 
-    preprocess_utils.save_patches(gt_list, SAVE_DIR_GT, GT_PATCH_SIZE, GT_STEP_SIZE)
-    preprocess_utils.save_patches(lr_list, SAVE_DIR_LR, GT_PATCH_SIZE // SCALE, GT_STEP_SIZE // SCALE)
+    preprocess_utils.save_patches(gt_list, os.path.join(SAVE_DIR_GT, 'test'), GT_PATCH_SIZE, GT_STEP_SIZE)
+    preprocess_utils.save_patches(lr_list, os.path.join(SAVE_DIR_LR, 'test'), GT_PATCH_SIZE // SCALE, GT_STEP_SIZE // SCALE)
 
 
