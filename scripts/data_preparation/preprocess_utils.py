@@ -67,6 +67,19 @@ def calc_output(x, p1, p2, mp1, mp2):
     return output
 
 def make_dir(dir_path):
+    """
+    Create a directory at the specified path if it doesn't exist.
+    If the directory already exists, prompt the user to overwrite it or skip.
+
+    Args:
+        dir_path (str): The path of the directory to be created.
+
+    Raises:
+        ValueError: If the user provides an invalid input (not 'Y' or 'N').
+
+    Returns:
+        None
+    """
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
         print(f'\nCreated directory: {dir_path}')
@@ -77,7 +90,7 @@ def make_dir(dir_path):
             print(f'Overwriting...')
             shutil.rmtree(dir_path)
             os.makedirs(dir_path, exist_ok=True)
-            print("     Done overwritting directory.")
+            print("     Done overwriting directory.")
         elif user_response.lower() == 'n':
             print(f'Skipping...')
         else:
@@ -96,7 +109,11 @@ def save_patches(img_list, save_folder, crop_size, step, compression_level=3):
 
     idx = 0
     for img in img_list:
-        process_img(img, str(idx) + ".tif", crop_size, step, save_folder, compression_level)
+        img_rgb = np.zeros((img.shape[0], img.shape[1], 3), dtype=img.dtype)
+        img_rgb[..., 0] = img
+        img_rgb[..., 1] = img
+        img_rgb[..., 2] = img
+        process_img(img_rgb, str(idx) + ".tif", crop_size, step, save_folder, compression_level)
         idx += 1
 
 
