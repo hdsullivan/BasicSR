@@ -160,6 +160,7 @@ def train_pipeline(root_path):
     data_timer, iter_timer = AvgTimer(), AvgTimer()
     start_time = time.time()
     loss = []
+    val_ssim = []
     for epoch in range(start_epoch, total_epochs + 1):
         train_sampler.set_epoch(epoch)
         prefetcher.reset()
@@ -201,6 +202,7 @@ def train_pipeline(root_path):
                     logger.warning('Multiple validation datasets are *only* supported by SRModel.')
                 for val_loader in val_loaders:
                     model.validation(val_loader, current_iter, tb_logger, opt['val']['save_img'])
+                    val_ssim.append(model.get_current_log()['ssim'])
 
             data_timer.start()
             iter_timer.start()
@@ -211,6 +213,9 @@ def train_pipeline(root_path):
 
     loss_array = np.array(loss)
     np.save(osp.join('experiments', opt['name'], "loss.npy"), loss_array)
+
+    val_ssim_array = np.array(val_ssim)
+    np.save(osp.join('experiments', opt['name'], "val_ssim.npy"), val_ssim_array)
 
     consumed_time = str(datetime.timedelta(seconds=int(time.time() - start_time)))
     logger.info(f'End of training. Time consumed: {consumed_time}')
