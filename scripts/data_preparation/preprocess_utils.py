@@ -234,13 +234,18 @@ def crop_to_object(img_gt, img_lr, scale, slice, thresh_range, patch_thresh):
         # height = bottom - top
 
         if width > patch_thresh and height > patch_thresh:
+            buffer_width = (patch_thresh - (width % patch_thresh))
+            buffer_height = (patch_thresh - (height % patch_thresh))
+            width = width + buffer_width
+            height = height + buffer_height
+
             print(f'Found Object in slice {scale * slice} with bbox of size = {width}x{height} pixels.')
-
-            width = width + (width % patch_thresh)
-            height = height + (height % patch_thresh)
-
-            img_gt = img_gt[y:y+height, x:x+width]
-            img_lr = img_lr[x // scale:(x+width) // scale, y // scale:(y + height) // scale]
+            x_1 = x
+            x_2 = x_1 +  width
+            y_1 = y
+            y_2 = y_1 + height
+            img_gt = img_gt[y_1:y_2, x_1:x_2]
+            img_lr = img_lr[y_1 // scale:y_2 // scale, x_1 // scale:x_2 // scale]
 
             return img_gt, img_lr
 
